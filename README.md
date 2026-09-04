@@ -1,6 +1,6 @@
 # Patronos NPS Bot
 
-> Bot de WhatsApp que aplica uma pesquisa de satisfação (estilo NPS) a mentores e mentorados do programa **Trilha de Carreiras**, da [Patronos](https://patronos.org.br/), conversando um pergunta por vez e salvando as respostas em CSV.
+> Bot de WhatsApp que aplica uma pesquisa de satisfação (estilo NPS) a mentores e mentorados do programa **Trilha de Carreiras**, da [Patronos](https://patronos.org), conversando um pergunta por vez e salvando as respostas em CSV.
 
 ## O problema
 

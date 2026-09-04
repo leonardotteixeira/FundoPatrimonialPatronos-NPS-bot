@@ -6,6 +6,10 @@
 
 Ao final de cada ciclo do programa de mentoria, alguém precisava mandar manualmente uma bateria de perguntas de satisfação para cada mentor e cada mentorado, acompanhar quem já respondeu e consolidar tudo numa planilha. Isso não escala e é fácil perder o controle de quem está em qual pergunta. O bot assume esse trabalho: dispara a pesquisa em massa, conduz a conversa (uma pergunta por vez, validando cada resposta) e grava o resultado, sem precisar de intervenção manual além de rodar o disparo inicial.
 
+## Solution
+
+Um bot de WhatsApp que dispara a pesquisa, conduz a conversa e grava as respostas sozinho. Os resultados podem ser visualizados no [`patronos-nps-dashboard`](https://github.com/leonardotteixeira/FundoPatrimonialPatronos-NPS-DASH).
+
 ## Como funciona
 
 1. **Login**: conecta numa conta de WhatsApp via QR code (protocolo multi-device, biblioteca [Baileys](https://github.com/WhiskeySockets/Baileys) — não é a API oficial do WhatsApp Business).

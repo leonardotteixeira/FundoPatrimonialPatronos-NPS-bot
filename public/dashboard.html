@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Patronos NPS — Painel</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --gray: #64748b;
+    --red: #ef4444;
+    --accent: #38bdf8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    padding: 24px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    font-size: 13px;
+  }
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--gray);
+  }
+  .dot.open { background: var(--green); }
+  .dot.qr { background: var(--yellow); }
+  .dot.close { background: var(--red); }
+
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card h2 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+  }
+  .card .subtitle {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+  .progress-bar {
+    display: flex;
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--gray);
+    margin-bottom: 12px;
+  }
+  .progress-bar .seg.completed { background: var(--green); }
+  .progress-bar .seg.in_progress { background: var(--yellow); }
+  .progress-bar .seg.not_started { background: var(--card-border); }
+
+  .stats {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .stats b { color: var(--text); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  th {
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+  .status-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+  }
+  .status-pill.completed { background: rgba(34,197,94,0.15); color: var(--green); }
+  .status-pill.in_progress { background: rgba(234,179,8,0.15); color: var(--yellow); }
+  .status-pill.not_started { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+  .last-answer {
+    color: var(--muted);
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .table-wrap {
+    max-height: 360px;
+    overflow-y: auto;
+  }
+  .empty {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 12px 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Patronos NPS — Painel de monitoramento</h1>
+  <div class="badge"><span class="dot" id="conn-dot"></span><span id="conn-text">carregando...</span></div>
+</header>
+
+<div class="groups" id="groups"></div>
+
+<script>
+  const STATUS_LABEL = {
+    completed: 'Concluído',
+    in_progress: 'Em andamento',
+    not_started: 'Não enviado',
+  };
+  const CONN_LABEL = {
+    open: 'Conectado',
+    qr: 'Aguardando QR code',
+    connecting: 'Conectando...',
+    close: 'Desconectado',
+  };
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  function renderGroup(key, group) {
+    const { summary, contacts, label, totalQuestions } = group;
+    const total = summary.total || 1;
+    const pct = (n) => (n / total) * 100;
+
+    const rows = contacts
+      .map((c) => `
+        <tr>
+          <td>${escapeHtml(c.name)}</td>
+          <td>${escapeHtml(c.phone)}</td>
+          <td><span class="status-pill ${c.status}">${STATUS_LABEL[c.status]}</span></td>
+          <td>${c.status === 'in_progress' ? escapeHtml(c.currentQuestion) + '' : ''}</td>
+          <td class="last-answer" title="${escapeHtml(c.lastAnswer)}">${escapeHtml(c.lastAnswer)}</td>
+        </tr>
+      `)
+      .join('');
+
+    return `
+      <div class="card">
+        <h2>${escapeHtml(label)}</h2>
+        <div class="subtitle">${totalQuestions} perguntas · ${summary.total} contatos</div>
+        <div class="progress-bar">
+          <div class="seg completed" style="width:${pct(summary.completed)}%"></div>
+          <div class="seg in_progress" style="width:${pct(summary.inProgress)}%"></div>
+          <div class="seg not_started" style="width:${pct(summary.notStarted)}%"></div>
+        </div>
+        <div class="stats">
+          <span><b>${summary.completed}</b> concluídos</span>
+          <span><b>${summary.inProgress}</b> em andamento</span>
+          <span><b>${summary.notStarted}</b> não enviados</span>
+        </div>
+        <div class="table-wrap">
+          ${contacts.length
+            ? `<table>
+                <thead><tr><th>Nome</th><th>Telefone</th><th>Status</th><th>Pergunta atual</th><th>Última resposta</th></tr></thead>
+                <tbody>${rows}</tbody>
+              </table>`
+            : '<div class="empty">Nenhum contato nessa lista ainda.</div>'}
+        </div>
+      </div>
+    `;
+  }
+
+  async function refresh() {
+    try {
+      const res = await fetch('/api/status');
+      const data = await res.json();
+
+      const dot = document.getElementById('conn-dot');
+      const text = document.getElementById('conn-text');
+      dot.className = 'dot ' + data.connection;
+      text.textContent = CONN_LABEL[data.connection] || data.connection;
+
+      const groupsEl = document.getElementById('groups');
+      groupsEl.innerHTML = Object.entries(data.groups)
+        .map(([key, g]) => renderGroup(key, g))
+        .join('');
+    } catch (err) {
+      document.getElementById('conn-text').textContent = 'erro ao carregar';
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 4000);
+</script>
+
+</body>
+</html>

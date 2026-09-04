@@ -1,0 +1,15 @@
+{
+  "name": "patronos-nps-bot",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node src/index.js",
+    "send:mentorados": "node src/index.js --send=mentorados",
+    "send:mentores": "node src/index.js --send=mentores"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.18",
+    "pino": "^9.5.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
